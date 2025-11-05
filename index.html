@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Космический генератор паролей</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a2a, #1a1a4a, #2d1a4a);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Анимированные звезды и созвездия */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite ease-in-out;
+        }
+
+        .constellation {
+            position: fixed;
+            opacity: 0.7;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .constellation-star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #4fc3f7;
+            animation: pulse 3s infinite alternate;
+        }
+
+        .constellation-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4fc3f7, transparent);
+            transform-origin: left center;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(1deg); }
+            66% { transform: translateY(10px) rotate(-1deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Основной контейнер */
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (min-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr 1fr;
+                align-items: start;
+                padding: 40px 20px;
+            }
+        }
+
+        /* Левая колонка - генератор */
+        .generator-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideInLeft 1s ease;
+        }
+
+        /* Правая колонка - AI и доп.информация */
+        .ai-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 1s ease;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Заголовок с анимированным градиентом */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .main-title {
+            font-size: clamp(28px, 4vw, 42px);
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #4fc3f7, #e91e63, #9c27b0, #4fc3f7);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 8s ease infinite;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: clamp(16px, 2vw, 18px);
+            opacity: 0.8;
+            background: linear-gradient(45deg, #a5d8ff, #ffb6c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Контролы */
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .value-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(45deg, #4fc3f7, #2196f3);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(79, 195, 247, 0.6);
+            border: 2px solid white;
+            transition: all 0.3s ease;
+        }
+
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(79, 195, 247, 0.8);
+        }
+
+        /* Чекбоксы */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .option input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #4fc3f7;
+            transform: scale(1.1);
+        }
+
+        .option label {
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Поле пароля */
+        .password-display {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        #password {
+            width: 100%;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            color: white;
+            font-size: 18px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        #password:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 20px rgba(79, 195, 247, 0.3);
+        }
+
+        .copy-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        /* Кнопки */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 480px) {
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            padding: 18px 24px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #4fc3f7, #2196f3);
+            color: white;
+            box-shadow: 0 8px 25px rgba(79, 195, 247, 0.4);
+        }
+
+        .ai-btn {
+            background: linear-gradient(135deg, #ff4081, #e91e63);
+            color: white;
+            box-shadow: 0 8px 25px rgba(255, 64, 129, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Индикатор сложности */
+        .strength-meter {
+            margin-top: 25px;
+        }
+
+        .strength-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .strength-value {
+            font-size: 16px;
+            background: linear-gradient(45deg, #4fc3f7, #e91e63);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .meter {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #00c851);
+            transition: all 0.5s ease;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meter-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Секция AI */
+        .ai-suggestions {
+            margin-top: 20px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #ff4081, #e91e63);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .suggestions-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .suggestion {
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .suggestion:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #ff4081;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 64, 129, 0.2);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #4fc3f7;
+            font-size: 16px;
+        }
+
+        .dot-animation {
+            display: inline-block;
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Кастомные иконки */
+        .icon {
+            font-size: 20px;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+
+        .icon-rocket { color: #4fc3f7; }
+        .icon-ai { color: #ff4081; }
+        .icon-copy { color: #4caf50; }
+        .icon-lock { color: #9c27b0; }
+    </style>
+</head>
+<body>
+    <!-- Анимированные звезды и созвездия -->
+    <div class="stars" id="stars"></div>
+    <div id="constellations"></div>
+
+    <div class="main-container">
+        <!-- Левая колонка - основной генератор -->
+        <div class="generator-section">
+            <div class="header">
+                <h1 class="main-title">✨ Космический генератор паролей</h1>
+                <p class="subtitle">Создавайте пароли космической сложности</p>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">
+                    <span>Длина пароля:</span>
+                    <span class="value-display" id="lengthValue">12</span>
+                </div>
+                <input type="range" class="range-slider" id="length" min="4" max="200" value="12">
+            </div>
+
+            <div class="options-grid">
+                <div class="option">
+                    <input type="checkbox" id="uppercase" checked>
+                    <label for="uppercase">A-Z Заглавные</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="lowercase" checked>
+                    <label for="lowercase">a-z Строчные</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="numbers" checked>
+                    <label for="numbers">0-9 Цифры</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="symbols">
+                    <label for="symbols">!@#$ Символы</label>
+                </div>
+            </div>
+
+            <div class="password-display">
+                <div id="password">Нажмите "Сгенерировать"</div>
+                <button class="copy-btn" onclick="copyPassword()">
+                    <span class="icon icon-copy">📋</span>
+                </button>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn generate-btn" onclick="generatePassword()">
+                    <span class="icon icon-rocket">🚀</span>
+                    Сгенерировать
+                </button>
+                <button class="btn ai-btn" onclick="getAISuggestions()">
+                    <span class="icon icon-ai">🤖</span>
+                    AI Подбор
+                </button>
+            </div>
+
+            <div class="strength-meter">
+                <div class="strength-header">
+                    <span>Сложность пароля:</span>
+                    <span class="strength-value" id="strengthText">Средний</span>
+                </div>
+                <div class="meter">
+                    <div class="meter-fill" id="meterFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Правая колонка - AI подбор -->
+        <div class="ai-section">
+            <div class="ai-header">
+                <span class="icon icon-ai">🔮</span>
+                <span>AI Генератор паролей</span>
+            </div>
+            
+            <div class="ai-suggestions">
+                <div id="suggestionsList">
+                    <div class="suggestion" onclick="useSuggestion(this)">
+                        Нажмите "AI Подбор" для генерации умных паролей
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Создание звездного неба
+        function createStars() {
+            const stars = document.getElementById('stars');
+            for (let i = 0; i < 300; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = (Math.random() * 2 + 1) + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 4 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                stars.appendChild(star);
+            }
+        }
+
+        // Создание случайных созвездий
+        function createConstellations() {
+            const container = document.getElementById('constellations');
+            const constellationsCount = 8;
+            
+            for (let c = 0; c < constellationsCount; c++) {
+                const constellation = document.createElement('div');
+                constellation.className = 'constellation';
+                
+                // Случайная позиция на экране
+                const left = Math.random() * 80 + 10;
+                const top = Math.random() * 80 + 10;
+                constellation.style.left = left + '%';
+                constellation.style.top = top + '%';
+                constellation.style.animationDelay = (c * 2) + 's';
+                
+                // Создание звезд в созвездии
+                const starsCount = Math.floor(Math.random() * 6) + 4;
+                const stars = [];
+                
+                for (let i = 0; i < starsCount; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'constellation-star';
+                    const x = Math.random() * 100;
+                    const y = Math.random() * 100;
+                    star.style.left = x + 'px';
+                    star.style.top = y + 'px';
+                    star.style.animationDelay = (i * 0.8) + 's';
+                    constellation.appendChild(star);
+                    stars.push({x, y, element: star});
+                }
+                
+                // Создание линий между звездами
+                for (let i = 0; i < starsCount - 1; i++) {
+                    for (let j = i + 1; j < Math.min(i + 3, starsCount); j++) {
+                        if (Math.random() > 0.4) {
+                            const line = document.createElement('div');
+                            line.className = 'constellation-line';
+                            
+                            const dx = stars[j].x - stars[i].x;
+                            const dy = stars[j].y - stars[i].y;
+                            const length = Math.sqrt(dx * dx + dy * dy);
+                            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                            
+                            line.style.width = length + 'px';
+                            line.style.left = stars[i].x + 'px';
+                            line.style.top = stars[i].y + 'px';
+                            line.style.transform = `rotate(${angle}deg)`;
+                            line.style.opacity = 0.3 + Math.random() * 0.4;
+                            
+                            constellation.appendChild(line);
+                        }
+                    }
+                }
+                
+                container.appendChild(constellation);
+            }
+        }
+
+        // Генерация пароля
+        function generatePassword() {
+            const length = parseInt(document.getElementById('length').value);
+            const hasUpper = document.getElementById('uppercase').checked;
+            const hasLower = document.getElementById('lowercase').checked;
+            const hasNumbers = document.getElementById('numbers').checked;
+            const hasSymbols = document.getElementById('symbols').checked;
+
+            if (!hasUpper && !hasLower && !hasNumbers && !hasSymbols) {
+                document.getElementById('password').textContent = 'Выберите хотя бы один тип символов!';
+                return;
+            }
+
+            const upperChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lowerChars = 'abcdefghijklmnopqrstuvwxyz';
+            const numberChars = '0123456789';
+            const symbolChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+            let availableChars = '';
+            if (hasUpper) availableChars += upperChars;
+            if (hasLower) availableChars += lowerChars;
+            if (hasNumbers) availableChars += numberChars;
+            if (hasSymbols) availableChars += symbolChars;
+
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * availableChars.length);
+                password += availableChars[randomIndex];
+            }
+
+            document.getElementById('password').textContent = password;
+            updateStrengthMeter(password);
+        }
+
+        // Обновление индикатора сложности
+        function updateStrengthMeter(password) {
+            let strength = 0;
+            const length = password.length;
+            
+            if (length >= 8) strength += 25;
+            if (length >= 12) strength += 25;
+            if (length >= 16) strength += 25;
+            
+            if (/[A-Z]/.test(password) && /[a-z]/.test(password)) strength += 15;
+            if (/[0-9]/.test(password)) strength += 15;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+
+            strength = Math.min(strength, 100);
+            
+            const meterFill = document.getElementById('meterFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            meterFill.style.width = strength + '%';
+            
+            if (strength < 40) {
+                strengthText.textContent = 'Слабый';
+            } else if (strength < 70) {
+                strengthText.textContent = 'Средний';
+            } else {
+                strengthText.textContent = 'Сильный';
+            }
+        }
+
+        // Копирование пароля
+        function copyPassword() {
+            const password = document.getElementById('password').textContent;
+            navigator.clipboard.writeText(password).then(() => {
+                const btn = event.target.closest('button');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<span class="icon icon-copy">✅</span>';
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                }, 2000);
+            });
+        }
+
+        // AI подбор паролей - всегда разные
+        async function getAISuggestions() {
+            const suggestionsList = document.getElementById('suggestionsList');
+            
+            suggestionsList.innerHTML = `
+                <div class="loading">
+                    <div>AI генерирует уникальные пароли</div>
+                    <div class="dot-animation">...</div>
+                </div>
+            `;
+
+            // Имитация работы AI с всегда разными результатами
+            setTimeout(() => {
+                const aiPasswords = [
+                    generateUniqueAIPassword(),
+                    generateUniqueAIPassword(),
+                    generateUniqueAIPassword(),
+                    generateUniqueAIPassword(),
+                    generateUniqueAIPassword()
+                ];
+
+                suggestionsList.innerHTML = '';
+                aiPasswords.forEach((pass, index) => {
+                    const suggestion = document.createElement('div');
+                    suggestion.className = 'suggestion';
+                    suggestion.textContent = pass;
+                    suggestion.onclick = () => useSuggestion(suggestion);
+                    suggestionsList.appendChild(suggestion);
+                });
+            }, 1500);
+        }
+
+        function generateUniqueAIPassword() {
+            const themes = [
+                'космический', 'технологичный', 'природный', 'мифический',
+                'математический', 'химический', 'исторический', 'музыкальный',
+                'литературный', 'художественный', 'архитектурный', 'биологический'
+            ];
+            
+            const methods = [
+                'combineWords',
+                'patternBased',
+                'leetSpeak',
+                'sentenceBased',
+                'randomPattern'
+            ];
+            
+            const selectedTheme = themes[Math.floor(Math.random() * themes.length)];
+            const selectedMethod = methods[Math.floor(Math.random() * methods.length)];
+            
+            return generateByMethod(selectedTheme, selectedMethod);
+        }
+
+        function generateByMethod(theme, method) {
+            const wordBanks = {
+                'космический': ['Nebula', 'Galaxy', 'Star', 'Cosmo', 'Orbit', 'Quantum', 'Solar', 'Lunar', 'Comet', 'Meteor'],
+                'технологичный': ['Cyber', 'Neural', 'Matrix', 'Digital', 'Code', 'AI', 'Data', 'Cloud', 'Crypto', 'Block'],
+                'природный': ['Forest', 'Ocean', 'Mountain', 'River', 'Sky', 'Earth', 'Volcano', 'Canyon', 'Desert', 'Island'],
+                'мифический': ['Dragon', 'Phoenix', 'Unicorn', 'Wizard', 'Magic', 'Spell', 'Myth', 'Legend', 'Hero', 'Quest']
+            };
+
+            const words = wordBanks[theme] || wordBanks['космический'];
+            
+            switch(method) {
+                case 'combineWords':
+                    const word1 = words[Math.floor(Math.random() * words.length)];
+                    const word2 = words[Math.floor(Math.random() * words.length)];
+                    const number = Math.floor(Math.random() * 1000);
+                    const symbol = '!@#$%^&*'[Math.floor(Math.random() * 8)];
+                    return word1 + word2 + number + symbol;
+                    
+                case 'patternBased':
+                    const baseWord = words[Math.floor(Math.random() * words.length)];
+                    const leetMap = {'a': '4', 'e': '3', 'i': '1', 'o': '0', 's': '5', 't': '7'};
+                    let leetWord = '';
+                    for (let char of baseWord.toLowerCase()) {
+                        leetWord += leetMap[char] || char;
+                    }
+                    return leetWord + Math.floor(Math.random() * 90 + 10) + '!';
+                    
+                case 'leetSpeak':
+                    const word = words[Math.floor(Math.random() * words.length)];
+                    return word.split('').map(c => 
+                        Math.random() > 0.7 ? (c.toUpperCase()) : c.toLowerCase()
+                    ).join('') + '_' + Math.floor(Math.random() * 100);
+                    
+                case 'sentenceBased':
+                    const part1 = words[Math.floor(Math.random() * words.length)];
+                    const part2 = words[Math.floor(Math.random() * words.length)];
+                    return part1.slice(0, 3) + part2.slice(-3) + 
+                           Math.floor(Math.random() * 1000).toString().padStart(3, '0') + 
+                           '!@#'[Math.floor(Math.random() * 3)];
+                    
+                case 'randomPattern':
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+                    let result = '';
+                    const patternLength = Math.floor(Math.random() * 8) + 8;
+                    for (let i = 0; i < patternLength; i++) {
+                        result += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    return result;
+            }
+        }
+
+        function useSuggestion(element) {
+            const password = element.textContent;
+            document.getElementById('password').textContent = password;
+            updateStrengthMeter(password);
+            
+            // Анимация выбора
+            element.style.background = 'rgba(255, 64, 129, 0.2)';
+            element.style.borderColor = '#ff4081';
+            setTimeout(() => {
+                element.style.background = '';
+                element.style.borderColor = '';
+            }, 1000);
+        }
+
+        // Инициализация
+        document.getElementById('length').addEventListener('input', function() {
+            document.getElementById('lengthValue').textContent = this.value;
+        });
+
+        // Создаем звезды и созвездия
+        createStars();
+        createConstellations();
+
+        // Генерируем первый пароль при загрузке
+        generatePassword();
+    </script>
+</body>
+</html>
